@@ -4,6 +4,7 @@
 #include "../stdPeriphLibs/lpc17xx_gpio.h"
 #include "../stdPeriphLibs/lpc17xx_pinsel.h"
 #include "../stdPeriphLibs/lpc17xx_spi.h"
+#include "../stdPeriphLibs/lpc17xx_exti.h"
 
 
 static void delay( void );
@@ -231,8 +232,39 @@ void gpio_init() {
   GPIO_SetDir(1, 0x1<<19, INPUT);
   ///////////////////////////////////////
 
+  // FPGA Reset Button
+  EXTI_InitTypeDef EXTICfg;
+
+      /* Initialize EXT pin and register */
+      /* P2.12 as /EINT2*/
+  PinSelCfg.Funcnum   = PINSEL_FUNC_1;
+  PinSelCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinSelCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+  PinSelCfg.Pinnum    = FPGA_RST_SW;
+  PinSelCfg.Portnum   = FPGA_RST_SW_PORT;
+  PINSEL_ConfigPin(&PinSelCfg);
+  EXTI_Init();
+
+  EXTICfg.EXTI_Line = EXTI_EINT2;
+  EXTICfg.EXTI_Mode = EXTI_MODE_EDGE_SENSITIVE;
+  EXTICfg.EXTI_polarity = EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
+  EXTI_ClearEXTIFlag(EXTI_EINT2);
+  EXTI_Config(&EXTICfg);
+  GPIO_IntCmd(0, 0x01 << FPGA_RST_SW, 1);
+
+  NVIC_SetPriorityGrouping(0);
+  NVIC_SetPriority(EINT2_IRQn, 4);
+  NVIC_EnableIRQ(EINT2_IRQn);
+
 }
 
+void EINT2_IRQHandler(void)
+{
+  /* clear the EINT2 flag */
+  EXTI_ClearEXTIFlag(EXTI_EINT2);
+  GPIO_ClearInt(FPGA_RST_SW_PORT, 0x01 << FPGA_RST_SW);
+  reset_FPGA();
+}
 
 void gpio_set_gpio_pin(unsigned int pin, uint8_t port)
 {
@@ -272,11 +304,9 @@ void gpio_disable_gpio_pin_output(unsigned int pin, uint8_t port ) {
 
 void reset_FPGA(void)
 {
-	GPIO_SetDir( 0, 0x01<<6, OUTPUT );
-	GPIO_ClearValue( 0, 0x01<<6 );
-	delay(  );
-	GPIO_SetValue( 0, 0x01<<6 );
-	GPIO_SetDir( 0, 0x01<<6, INPUT );
+    GPIO_ClearValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
+    delay();
+    GPIO_SetValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
 }
 
 

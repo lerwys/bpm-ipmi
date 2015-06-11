@@ -32,6 +32,12 @@
 #define IPMI_EJTHDL_PORT 	2
 #define IPMI_EJTHDL		13
 
+//FPGA_RESET
+#define FPGA_RST_SW_PORT	2
+#define FPGA_RST_SW		12
+#define FPGA_RESETn_PORT	2
+#define FPGA_RESETn		9
+
 //PAYLOAD_POWER lines
 #define	UC_PWRENOUT_PORT	0
 #define	UC_PWRENOUT		6
