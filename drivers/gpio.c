@@ -304,9 +304,8 @@ void gpio_disable_gpio_pin_output(unsigned int pin, uint8_t port ) {
 
 void reset_FPGA(void)
 {
-    GPIO_ClearValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
-    delay();
-    GPIO_SetValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
+	GPIO_ClearValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
+	GPIO_SetValue(FPGA_RESETn_PORT, 0x01<<FPGA_RESETn);
 }
 
 
