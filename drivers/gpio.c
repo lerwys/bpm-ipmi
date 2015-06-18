@@ -243,6 +243,15 @@ void gpio_init() {
   PinSelCfg.Pinnum    = FPGA_RST_SW;
   PinSelCfg.Portnum   = FPGA_RST_SW_PORT;
   PINSEL_ConfigPin(&PinSelCfg);
+
+  PinSelCfg.Funcnum   = PINSEL_FUNC_0;
+  PinSelCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinSelCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+  PinSelCfg.Pinnum    = FPGA_RESETn;
+  PinSelCfg.Portnum   = FPGA_RESETn_PORT;
+  PINSEL_ConfigPin(&PinSelCfg);
+  GPIO_SetDir(FPGA_RESETn_PORT, 1<<FPGA_RESETn, OUTPUT);
+
   EXTI_Init();
 
   EXTICfg.EXTI_Line = EXTI_EINT2;
