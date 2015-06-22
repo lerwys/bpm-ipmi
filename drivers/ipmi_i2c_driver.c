@@ -169,7 +169,7 @@ void I2C0_IRQHandler( void )
 
    case I2STAT_SLAW_SENT_NOT_ACKED:
      ipmi_i2c_start_slave_listen();
-     ipmb_service( );
+     //ipmb_service( );
      I2CCONCLR( I2C_CTRL_FL_SI );
 
      break;
@@ -245,9 +245,11 @@ void I2C0_IRQHandler( void )
            unload_xmt_msg();                                                             // removed completed message from transmit queue
          if (eor_xcnt)
            ipmi_i2c_start_master_mode_write();                                // transmit next message
-         else
-           ipmi_i2c_start_slave_listen();                                             // go back to slave mode listening
-
+         else{
+           ipmi_i2c_state.state == slave_listen;
+           I2CCONSET( I2C_CTRL_FL_AA | I2C_CTRL_FL_STO );
+           I2CCONCLR( I2C_CTRL_FL_SI);                                             // go back to slave mode listening
+         }
        }
      break;
 
@@ -255,9 +257,9 @@ void I2C0_IRQHandler( void )
      /* Data has been transmitted, NOT ACK received.
       * Send a STOP condition & enter not adressed slave mode.
       */
-     ipmi_i2c_start_slave_listen();
-//     I2CCONSET( I2C_CTRL_FL_AA | I2C_CTRL_FL_STO );
-     I2CCONCLR( I2C_CTRL_FL_SI | I2C_CTRL_FL_STO | I2C_CTRL_FL_STA);
+     ipmi_i2c_state.state == slave_listen;
+     I2CCONSET( I2C_CTRL_FL_AA | I2C_CTRL_FL_STO );
+     I2CCONCLR( I2C_CTRL_FL_SI);
 
      break;
 
@@ -519,8 +521,9 @@ unsigned int put_ipmi_i2c_msg(volatile unsigned char* xbuf, volatile unsigned sh
   put_xmt_eor(ipmi_i2c_xwidx);                       // this is index of last byte to be written to queue
   put_xmt_byte(*bptr);
 
-  if (OK_to_enter_master_mode())
+  if (OK_to_enter_master_mode()){
     ipmi_i2c_start_master_mode_write();
+  }
   Int_Restore(giflag);
   return (1);
 }
